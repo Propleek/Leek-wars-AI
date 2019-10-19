@@ -1,0 +1,107 @@
+include("auto");
+function bulbAI(){
+	var type = getEntityType(getLeek());
+	if(type != "ENTITY_ROCKY_BULB" || "ENTITY_HEALER_BULB") var group = getAliveEnemies();
+	else var group = getAliveAllies();
+}
+function scoreAllPossibleActions(){
+	startOperationTest();
+	updateCoefs(getAliveAllies()+getAliveEnemies());//scoring
+	var stuff = filterInventory(getLeek());//mes chips triées avec mes cooldowns(jvais pas jouer un truc que jpeux pas utiliser) 
+	var reachableCells = getLeek() == _SELF? _REACHABLE_CELLS : getReachableCells(getLeek(), getMP());//éviter de redéfinir mes cellules accessibles pcq jles ai déjà
+	var scores = [];
+	var actions = [];
+	var testCells;
+	var cell;
+	var targets;
+	var group;
+	//start for weapons
+	for (var w in getWeapons()) 
+	{
+		var area = _AREA[w];//getWeaponArea en moins cher
+		for (var e in getAliveEnemies()) 
+		{
+			testCells = getWeaponEffectiveArea(w, getCell(e));
+			for (var c in testCells) 
+			{
+				cell = myGetCellToUseItem(w, c);
+				if(cell != null)
+				{
+					scores[[w,c]] = getActionScore([w, c]);
+				}
+			}
+		}
+	}//end for weapons
+	for (var chip in stuff) 
+	{
+		if(_IS_POSITIV_EFFECTS[chip])
+		{
+			var minRange = _ITEM_MINRANGE[chip];
+			var onlyBulb = _ISONLYBULB[chip];//ça sert à savoir sur quoi je teste (true si c'est que pour les bulbes, false si c'est que pour les poireaux, 
+			//null sinon)
+			var area = _AREA[chip];//getChipArea
+			group = getAliveAllies();//vu que ç'est un effet positif on teste pas sur les enemis
+			if(onlyBulb == false)//la on trie les trucs sur lesquels la chip n'a pas d'effet
+			{
+				for (var l in group) 
+				{
+					if(getEntityType(l) != ENTITY_LEEK_) removeElement(group, l);
+				}
+			}
+			else if(onlyBulb == true)//idem
+			{
+				for (var l in group) 
+				{
+					if(getEntityType(l) == ENTITY_LEEK_) removeElement(group, l);
+				}
+			}
+			if(minRange > 0) removeElement(group, getLeek());
+			for (var l in group) 
+			{
+				testCells = getChipEffectiveArea(chip, getCell(l));
+				for (var c in testCells) 
+				{
+					cell = myGetCellToUseItem(chip, c);
+					if(cell != null) 
+					{
+						scores[[chip, c]] = getActionScore([chip,c]);
+					}
+				}
+			}
+		}else
+		{
+			var area = _AREA[chip];
+			var onlyBulb = _ISONLYBULB[chip];
+			group = getAliveEnemies();
+			if(onlyBulb == false)//même principe que pour les alliés
+			{
+				for (var l in group) 
+				{
+					if(getEntityType(l) != ENTITY_LEEK_) removeElement(group, l);
+				}
+			}
+			else if(onlyBulb == true)
+			{
+				for (var l in group) 
+				{
+					if(getEntityType(l) == ENTITY_LEEK_) removeElement(group, l);
+				}
+			}
+			for (var l in group) 
+			{
+				testCells = getChipEffectiveArea(chip, getCell(l));
+				for (var c in testCells) 
+				{
+					cell = myGetCellToUseItem(chip, c);
+					if(cell != null) {
+						scores[[chip, c]] = getActionScore([chip,c]);
+					}
+				}
+			}
+		}
+	}
+	stopOperationTest("scoring des moves");
+	debug(@scores);
+	return @scores;
+}
+debug(scoreAllPossibleActions()+"le score des actions");
