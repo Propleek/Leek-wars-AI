@@ -1,0 +1,354 @@
+//Déclaration des globals
+
+global _SELF = getLeek();
+global _STUFF = getWeapons()+getChips();
+global _TO_REMOVE_TO_STUFF = [CHIP_ANTIDOTE, CHIP_TELEPORTATION, CHIP_INVERSION, CHIP_REGENERATION, CHIP_LIBERATION];
+global _ENCODING_STUFF = [];
+for (var item in _STUFF) {
+	_ENCODING_STUFF[item] = true;
+}
+for (var i in _TO_REMOVE_TO_STUFF) {
+	removeElement(_STUFF, i);
+}
+global _DECODING_STUFF = [];
+for (var item in _STUFF) {
+	_DECODING_STUFF[item] = true;
+}
+global _FIGHT_TYPE = getRFightType();
+global _TARGETS = [];
+global _ALLIES = [];
+function getRFightType(){
+	var _FIGHT;
+	if(getFightType() == FIGHT_TYPE_SOLO) _FIGHT = 1;
+	else if(getFightType() == FIGHT_TYPE_FARMER) _FIGHT = 2;
+	else if(getFightType() == FIGHT_TYPE_TEAM) _FIGHT = 3;
+	return _FIGHT;
+}
+global _IS_POSITIV_EFFECTS = [
+	CHIP_ACCELERATION:true,
+	CHIP_ADRENALINE:true,
+	CHIP_ANTIDOTE:true,
+	CHIP_ARMOR:true,
+	CHIP_ARMORING:true,
+	CHIP_BALL_AND_CHAIN:false,
+	CHIP_BANDAGE:true,
+	CHIP_BARK:true,
+	CHIP_BURNING:false,
+	CHIP_CARAPACE:true,
+	CHIP_COLLAR:true,
+	CHIP_CURE:true,
+	CHIP_DEVIL_STRIKE:false,
+	CHIP_DOPING:true,
+	CHIP_DRIP:true,
+	CHIP_FEROCITY:true,
+	CHIP_FERTILIZER:true,
+	CHIP_FIRE_BULB:null,//c'est un summon ducoup cas particulier'
+	CHIP_FLAME:false,
+	CHIP_FLASH:false,
+	CHIP_FORTRESS:true,
+	CHIP_FRACTURE:false,
+	CHIP_HEALER_BULB:null,//la même
+	CHIP_HELMET:true,
+	CHIP_ICE:false,
+	CHIP_ICEBERG:false,
+	CHIP_ICED_BULB:null,
+	CHIP_INVERSION:null,
+	CHIP_LEATHER_BOOTS:true,
+	CHIP_LIBERATION:null, //cas particulier car peut être positive ou négative
+	CHIP_LIGHTNING:false,
+	CHIP_LIGHTNING_BULB:null,
+	CHIP_LOAM:true,
+	CHIP_METALLIC_BULB:null,
+	CHIP_METEORITE:false,
+	CHIP_MIRROR:true,
+	CHIP_MOTIVATION:true,
+	CHIP_PEBBLE:false,
+	CHIP_PLAGUE:false,
+	CHIP_PROTEIN:true,
+	CHIP_PUNY_BULB:null,
+	CHIP_RAGE:true,
+	CHIP_RAMPART:true,
+	CHIP_REFLEXES:true,
+	CHIP_REGENERATION:true,
+	CHIP_REGENERATION:true,
+	CHIP_REMISSION:true,
+	CHIP_RESURRECTION:null,
+	CHIP_ROCK:false,
+	CHIP_ROCKFALL:false,
+	CHIP_ROCKY_BULB:null,
+	CHIP_SEVEN_LEAGUE_BOOTS:true,
+	CHIP_SHIELD:true,
+	CHIP_SHOCK:false,
+	CHIP_SLOW_DOWN:false,
+	CHIP_SOLIDIFICATION:true,
+	CHIP_SOPORIFIC:false,
+	CHIP_SPARK:false,
+	CHIP_STALACTITE:false,
+	CHIP_STEROID:true,
+	CHIP_STRETCHING:true,
+	CHIP_TELEPORTATION:null,
+	CHIP_THORN:true,
+	CHIP_TOXIN:false,
+	CHIP_TRANQUILIZER:false,
+	CHIP_VACCINE:true,
+	CHIP_VENOM:false,
+	CHIP_WALL:true,
+	CHIP_WARM_UP:true,
+	CHIP_WHIP:true,
+	CHIP_WINGED_BOOTS:true,
+];
+
+//globals du scoring qui servent pour la prise de décision du poireau
+
+global _LIBE_COEF = [];
+global _ATTACK_COEF = [];
+global _HEAL_COEF = [];
+global _ABS_SHIELD_COEF = [];
+global _REL_SHIELD_COEF = [];
+global _REGEN_COEF = [];
+global _VACCINE_COEF = [];
+global _ANTIDOTE_COEF = [];
+global _STR_BUFF_COEF=[];
+global _TP_BUFF_COEF = [];
+global _MP_BUFF_COEF = [];
+global _MP_DEBUF_COEF=[];
+global _TP_DEBUF_COEF = [];
+global _STR_DEBUFF_COEF=[];
+global _MAGIC_DEBUFF_COEF = [];
+global _COEF_MAX_HP_BOOST = [];
+global _COEF_DELAYED_SUMMON = [];
+
+//globals pour les différetes informations des objets
+
+global _ITEM_MAXRANGE = [];
+global _ITEM_MINRANGE = [];
+global _ISWEAP = [];
+global _ITEMCOST = [];
+global _NEEDLOS = [];
+global _AREA = [];
+global _ITEM_EFFECTS = [];
+global _ITEM_VALUE = [];
+global _ITEM_INLINE = [];
+global _ITEM_HAVECD = [];
+global _MAINWEAPON;
+
+global _RATIO_RISK_DEATH = 0.7;
+global _RATIO_IGNORE_RISK = 0.2;//si mon danger est de 20% de ma vie alors osef
+global _LEEK_MIGHT_DIE = false;
+global _RATIO_RISK;
+
+global _MAX_CELLS = 612;
+global _OBSTACLES = [];
+
+global _ISONLYBULB = [
+	CHIP_ACCELERATION:true,
+	CHIP_ADRENALINE:null,
+	CHIP_ANTIDOTE:null,
+	CHIP_ARMOR:null,
+	CHIP_ARMORING:null,
+	CHIP_BALL_AND_CHAIN:null,
+	CHIP_BANDAGE:null,
+	CHIP_BARK:true,
+	CHIP_BURNING:true,
+	CHIP_CARAPACE:true,
+	CHIP_COLLAR:true,
+	CHIP_CURE:null,
+	CHIP_DEVIL_STRIKE:null,
+	CHIP_DOPING:null,
+	CHIP_DRIP:null,
+	CHIP_FEROCITY:true,
+	CHIP_FERTILIZER:true,
+	CHIP_FIRE_BULB:false,
+	CHIP_FLAME:null,
+	CHIP_FLASH:null,
+	CHIP_FORTRESS:null,
+	CHIP_FRACTURE:null,
+	CHIP_HEALER_BULB:false,
+	CHIP_HELMET:null,
+	CHIP_ICE:null,
+	CHIP_ICEBERG:null,
+	CHIP_ICED_BULB:false,
+	CHIP_INVERSION:null,
+	CHIP_LEATHER_BOOTS:null,
+	CHIP_LIBERATION:null,
+	CHIP_LIGHTNING:null,
+	CHIP_LIGHTNING_BULB:false,
+	CHIP_LOAM:true,
+	CHIP_METALLIC_BULB:false,
+	CHIP_METEORITE:null,
+	CHIP_MIRROR:null,
+	CHIP_MOTIVATION:null,
+	CHIP_PEBBLE:null,
+	CHIP_PLAGUE:null,
+	CHIP_PROTEIN:null,
+	CHIP_PUNY_BULB:false,
+	CHIP_RAGE:false,
+	CHIP_RAMPART:null,
+	CHIP_REFLEXES:null,
+	CHIP_REGENERATION:null,
+	CHIP_REMISSION:null,
+	CHIP_RESURRECTION:null,
+	CHIP_ROCK:null,
+	CHIP_ROCKFALL:null,
+	CHIP_ROCKY_BULB:false,
+	CHIP_SEVEN_LEAGUE_BOOTS:false,
+	CHIP_SHIELD:null,
+	CHIP_SHOCK:null,
+	CHIP_SLOW_DOWN:null,
+	CHIP_SOLIDIFICATION:null,
+	CHIP_SOPORIFIC:null,
+	CHIP_SPARK:null,
+	CHIP_STALACTITE:null,
+	CHIP_STEROID:null,
+	CHIP_STRETCHING:null,
+	CHIP_TELEPORTATION:null,
+	CHIP_THORN:null,
+	CHIP_TOXIN:null,
+	CHIP_TRANQUILIZER:null,
+	CHIP_VACCINE:null,
+	CHIP_VENOM:null,
+	CHIP_WALL:null,
+	CHIP_WARM_UP:null,
+	CHIP_WHIP:true,
+	CHIP_WINGED_BOOTS:null,
+];
+
+global _LEEKS = [];
+global _MAP_DANGER;
+
+global _ITEM_PRIORITY = [
+	CHIP_LIBERATION:0,//TOUJOURS lancer en premier.
+    CHIP_REFLEXES:1,// puis les boosts agi qui donne des crits à tout le reste de l'action
+	CHIP_STRETCHING:2,// dans cet ordre si on fait les 2, merci loutre pour tes intégrales !
+	CHIP_WARM_UP:3,// crit des autres, pas important d'être au début mais bon...
+    CHIP_RAGE:4,// puis TP
+	CHIP_MOTIVATION:4,
+	CHIP_WHIP:5,
+    CHIP_ADRENALINE:5,
+	CHIP_SEVEN_LEAGUE_BOOTS:6,//puis MP
+	CHIP_ACCELERATION:6,
+	CHIP_WINGED_BOOTS:7
+	CHIP_LEATHER_BOOTS:7,
+	CHIP_DOPING:8,//puis force (avant de taper donc.)
+	CHIP_PROTEIN:9,
+	CHIP_FEROCITY:10,
+	CHIP_STEROID:10,
+	CHIP_SOLIDIFICATION:11,// puis resist avant les armures
+	CHIP_BARK:12,
+	CHIP_COLLAR:13,// puis sagesse avant les heal (mm si pour le moment y'a pas d'autoheal..)
+	CHIP_CARAPACE:14,// puis les armures avant les spell genre devilstrike
+    CHIP_FORTRESS:14,
+    CHIP_ARMOR:14,
+	CHIP_RAMPART:14,
+	CHIP_SHIELD:14,
+	CHIP_WALL:14,
+	CHIP_HELMET:14,
+	CHIP_DEVIL_STRIKE:15,// puis les dégâts et autodégât avec devilstrike
+	CHIP_BURNING:15, // & burning qui clean le metal avant de taper vraiment par ex.
+	CHIP_METEORITE:16,
+	CHIP_ICEBERG:16,
+	CHIP_ROCKFALL:16,
+	CHIP_LIGHTNING:16,
+	CHIP_STALACTITE:16,
+    CHIP_FLAME:16,
+	CHIP_ROCK:16,
+	CHIP_ICE:16,
+	CHIP_SPARK:16,
+    CHIP_PEBBLE:16,
+	CHIP_SHOCK:16,
+	WEAPON_AXE:17,// les weapon pareil, après les armures, le avant les heal dépends souvent
+	WEAPON_B_LASER:17,// de la situation ducoup c'est chiant...
+	WEAPON_BROADSWORD:17,
+	WEAPON_DESTROYER:17,
+	WEAPON_DOUBLE_GUN:17,
+	WEAPON_ELECTRISOR:17,
+	WEAPON_FLAME_THROWER:17,
+	WEAPON_GAZOR:17,
+	WEAPON_GRENADE_LAUNCHER:17,
+	WEAPON_KATANA:17,
+	WEAPON_LASER:17,
+	WEAPON_MACHINE_GUN:17,
+	WEAPON_MAGNUM:17,
+	WEAPON_M_LASER:17,
+	WEAPON_PISTOL:17,
+	WEAPON_SHOTGUN:17,
+	CHIP_SOPORIFIC:18,// puis entrave & poison AVANT antidote & heal.
+    CHIP_BALL_AND_CHAIN:18,
+	CHIP_TRANQUILIZER:18,
+	CHIP_SLOW_DOWN:18,
+	CHIP_FRACTURE:18,
+    CHIP_PLAGUE:18,
+    CHIP_TOXIN:18,
+	CHIP_VENOM:18,
+    CHIP_FERTILIZER:19,// puis heal après poison et dégât (j'avoue qu'en cas de blessure le heal pourrait être interessant avant de devilstrike... jsais pas comment gérer ça.)
+	CHIP_REMISSION:19,
+	CHIP_LOAM:19,
+	CHIP_ARMORING:19,
+	CHIP_REGENERATION:19,
+	CHIP_VACCINE:19,
+	CHIP_DRIP:19,
+    CHIP_CURE:19,
+    CHIP_BANDAGE:19,
+	CHIP_MIRROR:20,// puis renvoie de dégât (faut bien les mettres qqpart...)
+	CHIP_THORN:20,
+    CHIP_ANTIDOTE:21,// puis antidote, toujours après avoir utiliser les poisons !
+	// et le reste...
+    CHIP_LIGHTNING_BULB:22,//specialCHIP    
+    CHIP_FIRE_BULB:22,//specialCHIP
+	CHIP_METALLIC_BULB:22,//specialCHIP
+    CHIP_HEALER_BULB:22,//specialCHIP
+    CHIP_ICED_BULB:22,//specialCHIP
+	CHIP_ROCKY_BULB:22,//specialCHIP
+	CHIP_PUNY_BULB:22,//specialCHIP
+    CHIP_INVERSION:22,//specialCHIP
+	CHIP_TELEPORTATION:22,//specialCHIP
+    CHIP_RESURRECTION:22//specialCHIP
+];
+
+// globals pour aoe
+
+global _CIRCLE_AREA1 = [];
+global _CIRCLE_AREA2 = [];
+global _CIRCLE_AREA3 = [];
+
+global _DANGER_MAP = [];
+global _DANGER = 0;
+
+//globals pour les count
+global _HEALER_COUNT = 0;
+global _METALLIC_COUNT = 0;
+global _LIGHTNING_COUNT = 0;
+global _ROCKY_COUNT = 0;
+global _ICED_COUNT = 0;
+global _FIRE_COUNT = 0;
+global _PUNY_COUNT = 0;
+
+//globals des états
+global _LIFE = [];
+global _ABS_SHIELD = [];
+global _REL_SHIELD = [];
+global _PSN_LIFE = [];
+global _PSN_TURN = [];
+global _HEAL = [];
+global _STR = [];
+global _MGC = [];
+global _MP = [];
+global _TP = [];
+global _EFFECTS = [];
+global allies = [];
+global enemies = [];
+
+//globals pour le cache
+global _REACHABLE_CELLS;
+global _OPERATIONS_START;
+global _OPERATIONS_END;
+
+//constantes pour différencier les différents types de bulbes
+global ENTITY_LEEK_ = 0;
+global ENTITY_PUNY_BULB = 1;
+global ENTITY_ROCKY_BULB = 2;
+global ENTITY_ICED_BULB = 3;
+global ENTITY_HEALER_BULB = 4;
+global ENTITY_METALLIC_BULB = 5;
+global ENTITY_FIRE_BULB = 6;
+global ENTITY_LIGHTNING_BULB = 7;
