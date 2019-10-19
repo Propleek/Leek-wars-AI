@@ -1,0 +1,239 @@
+include("auto");
+function getAccessibleCells(entity)
+{
+	var accessibleCells = [];
+	var MP = getMP(entity);
+	var Cell = getCell(entity);
+	for (var i = 0; i < 613; i++) 
+	{	
+		if (getCellDistance(getCell(entity), i) <= getMP(entity)) 
+		{
+			var pathLength = getPathLength(i, Cell);
+			if ((pathLength <= MP) and (!isObstacle(i)))
+			{
+				push(accessibleCells, i);
+			}
+		}
+	}
+	/*debug("accessibleCells"); 
+	debugC(accessibleCells, COLOR_BLUE);*/
+	return accessibleCells;
+
+}
+
+function getReachableCells(@entity, @mp){
+	var start = getCell(entity);
+	var nextCells = [], stepCells = [];
+	var reachableCells = [];
+	var pathLength = 1;
+	var cells;
+	while (pathLength <= mp) {
+		if(pathLength == 1){
+			pushAll(nextCells, _CIRCLE_AREA1[start]);
+			removeElement(nextCells, start);
+			for (var i in nextCells) {
+				reachableCells[i] = pathLength;
+			}
+		} 
+		else{
+			stepCells = [];
+			for (var c in nextCells) {
+				cells = _CIRCLE_AREA1[c];
+				for (var c2 in cells) {
+					if(reachableCells[c2] == null && !isObstacle(c2) && isEmptyCell(c2)){reachableCells[c2] = pathLength; push(stepCells, c2);} 
+				}
+			}
+			nextCells = [];
+			pushAll(nextCells, stepCells);
+		}
+		pathLength += 1;
+	}
+	return @reachableCells;
+}
+function getShootCells(item, leek){
+	var Acells = getReachableCells(leek,  getMP(leek));
+	var maxRange = _ITEM_MAXRANGE[item];
+	var minRange = _ITEM_MINRANGE[item];
+	var inline = _ITEM_INLINE[item];
+	var los = _NEEDLOS[item];
+	var shootCells = [];
+	for (var i = 0; i < 613; i++) {
+		for (var cell : var distance in Acells) {
+			if(_OBSTACLES[i] != null) continue;
+			if(los == true) if(!lineOfSight(cell, i)) continue;
+			if(inline == true) if(!isOnSameLine(cell, i)) continue;
+			if(getCellDistance(cell, i) > maxRange) continue;
+			if(getCellDistance(cell, i) < minRange) continue;
+			push(shootCells, i);
+		}
+	}
+	return shootCells;
+}
+function circleEffectiveArea1(@cell){
+	var cells = [cell];
+	var X = getCellX(cell);
+	var Y = getCellY(cell);
+		var _CELL = getCellFromXY(X+1, Y);
+		if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+		_CELL = getCellFromXY(X-1, Y);
+		if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+		_CELL = getCellFromXY(X, Y+1);
+		if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+		_CELL = getCellFromXY(X, Y-1);
+		if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	return @cells;
+}
+function circleEffectiveArea2(@cell){
+	var cells = [cell];
+	pushAll(cells, circleEffectiveArea1(cell));
+	var X = getCellX(cell);
+	var Y = getCellY(cell);
+	var _CELL = getCellFromXY(X+2, Y);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X-2, Y);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X, Y+2);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X, Y-2);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X+1, Y+1);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X-1, Y+1);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X+1, Y-1);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X-1, Y-1);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	return @cells;
+}
+function circleEffectiveArea3(@cell){
+	var cells = [cell];
+	pushAll(cells, circleEffectiveArea1(cell));
+	pushAll(cells, circleEffectiveArea2(cell));
+	var X = getCellX(cell);
+	var Y = getCellY(cell);
+	var _CELL = getCellFromXY(X+3, Y);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X-3, Y);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X, Y+3);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X, Y-3);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X+2, Y-1);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X-1, Y+2);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X+1, Y-2);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X-2, Y+1);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X+1, Y+2);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X+2, Y+1);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X-2, Y-1);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	_CELL = getCellFromXY(X-1, Y-2);
+	if(_OBSTACLES[_CELL] == null && _CELL != null) push(cells, _CELL);
+	return @cells;
+}
+function getCellToUseItem(item, leek){
+	if(_ISWEAP[item]) return getCellToUseWeapon(item, leek);
+	else return getCellToUseChip(item, leek);
+}
+function getCellToUseItemOnCell(item, cell){
+	if(_ISWEAP[item]) return getCellToUseWeaponOnCell(item, cell);
+	else return getCellToUseChipOnCell(item, cell);
+}
+function canAoE(item, target, from){
+	var area = _AREA[item], testCells, distance = [];
+	var dmg_percent = [];
+	if(area == AREA_CIRCLE_1) testCells = _CIRCLE_AREA1[item];
+	if(area == AREA_CIRCLE_2) testCells = _CIRCLE_AREA2[item];
+	if(area == AREA_CIRCLE_3) testCells = _CIRCLE_AREA3[item];
+	for (var cell in testCells) {
+		distance[cell] = getCellDistance(cell, getCell(target));
+	}
+	for (var cell in testCells) {
+		if(getPathLength(getCell(from), getCellToUseItemOnCell(item,  cell)) > getMP(from)) continue;
+		moveTowardCell(getCellToUseItemOnCell(item, cell));
+		if(_ISWEAP[item]) if(getWeapon() != item) setWeapon(item);
+		if(_ISWEAP[item]) while(useWeaponOnCell(cell) > 0);
+		else while(useChipOnCell(item, cell) > 0);
+	}
+}
+function colorMap(){
+    var max=getLife();
+    var white = getColor(255, 255, 255);
+    for(var cell: var dmg in _DANGER_MAP){
+        if(dmg>=max) mark(cell, white);
+        else mark(cell, getColor(dmg/max*255, 255-(dmg/max*255), 0));
+    }
+}
+function startOperationTest(){
+	_OPERATIONS_START = getOperations();
+}
+function stopOperationTest(@n){
+	_OPERATIONS_END = getOperations();
+	debug("operations cost " + n +" " + (_OPERATIONS_END-_OPERATIONS_START));
+}
+
+function clearAllRegisters(){
+	var register = getRegisters();
+	for (var key in register) {
+		removeElement(register, key);
+	}
+}
+
+function myGetCellsToUseItem(@item, @cell){
+	startOperationTest();
+	var inline = _ITEM_INLINE[item];
+	var minRange = _ITEM_MINRANGE[item];
+	var maxRange = _ITEM_MAXRANGE[item];
+	var los = _NEEDLOS[item];
+	var testCells = _REACHABLE_CELLS;
+	var cells = [];
+	for (var c : var pathLength in testCells) {
+		if(los == true) if(!lineOfSight(c, cell)) continue;
+		if(inline == true) if(!isOnSameLine(c, cell)) continue;
+		if(getCellDistance(c, cell) < minRange) continue;
+		if(getCellDistance(c, cell) > maxRange) continue;
+		push(cells, c);
+	}
+	stopOperationTest("cost getCellToUseItem");
+	if(!isEmpty(@cells)) return @cells;
+	else return null;
+}
+function myGetCellToUseItem(@item,  @cell){
+	var cells = myGetCellsToUseItem(item,  cell);
+	if(cells == null) return null;
+	var distance = [];
+	for (var i in cells) {
+		push(distance, _REACHABLE_CELLS[i]);
+	}
+	mark(@cells[search(distance, arrayMin(distance))], COLOR_BLUE);
+	return @cells[search(distance, arrayMin(distance))];
+}
+function filterInventory(@leek){
+	var stuff = getChips(leek);
+	for (var i in stuff) {
+		if(leek != _SELF) if(getCooldown(i, leek) > 1) removeElement(stuff, i);
+		else if(getCooldown(i, leek) > 0) removeElement(stuff, i);
+		if(getChipCost(i) > getTP(leek)) removeElement(stuff, i);
+	}
+	return @stuff;
+}
+function getListOfLeeksWhoPlayBefore(@leek){
+	var group = getAliveAllies()+getAliveEnemies();
+	var turnOrder = [];
+	var ref = getEntityTurnOrder(leek);
+	removeElement(group, leek);
+	for (var i in group) {
+		push(turnOrder, getEntityTurnOrder(leek));
+	}
+	for (var i = 0; i < count(turnOrder); i++) {
+		if(turnOrder[i] > ref) remove(group, i);
+	}
+	return @group;
+}
