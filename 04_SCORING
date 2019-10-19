@@ -1,0 +1,241 @@
+include("auto");
+//on score les actions pour ensuite pouvoir sortir des combos utiles:
+
+function updateCoefs(leeks){
+	for (var l in leeks){
+		//d'abord reset tous les coefs
+		_LIBE_COEF[l] = 1;
+		_ATTACK_COEF[l] = 1;
+		_HEAL_COEF[l] = 1;
+		_ABS_SHIELD_COEF[l] = 1;
+		_REL_SHIELD_COEF[l] = 1;
+		_REGEN_COEF[l] = 1;
+		_VACCINE_COEF[l] = 1;
+		_ANTIDOTE_COEF[l] = 1;
+		_STR_BUFF_COEF[l] =1;
+		_TP_BUFF_COEF[l] = 1;
+		_MP_BUFF_COEF[l] = 1;
+		_MP_DEBUF_COEF[l] = 1;
+		_TP_DEBUF_COEF[l] = 1;
+		_STR_DEBUFF_COEF[l] = 1;
+		_MAGIC_DEBUFF_COEF[l] = 1;
+		_COEF_MAX_HP_BOOST[l] = 1;
+		var _life_ratio = getLife(l)/getTotalLife(l);
+		var eType = getEntityType(l);
+		if(!isSummon(l) && isAlly(l)){
+			if(_life_ratio < 0.9) _HEAL_COEF[l] += 1;
+			if(_life_ratio < 0.7) _HEAL_COEF[l] += 2;
+			if(_life_ratio < 0.5) _HEAL_COEF[l] += 3;
+			if(_life_ratio < 0.3) _HEAL_COEF[l] += 4;
+			if(getLife(l) == getTotalLife(l)) _COEF_MAX_HP_BOOST[l] += 3;
+			if(_life_ratio > 0.7) _VACCINE_COEF[l] += 3;
+			if(getStrength(l) > getMagic(l)) _STR_BUFF_COEF[l] += 4;
+			if(_life_ratio < 0.2) _REGEN_COEF[l] += 8;
+			if(_life_ratio < 0.9) _ABS_SHIELD_COEF[l] += 0.2;
+			if(_life_ratio < 0.7) _ABS_SHIELD_COEF[l] += 0.2;
+			if(_life_ratio < 0.5) _ABS_SHIELD_COEF[l] += 0.5;
+			if(_life_ratio < 0.3) _ABS_SHIELD_COEF[l] += 0.5;
+			if(getStrength(l) >= 300 || getMagic(l) >= 300) _MP_BUFF_COEF[l] += 3;
+			if(getStrength(l) >= 400 || getMagic(l) >= 400) _MP_BUFF_COEF[l] += 3;
+			if(getStrength(l) >= 600 || getMagic(l) >= 600) _MP_BUFF_COEF[l] += 3;
+			if(getStrength(l) >= 200 || getMagic(l) >= 200) _TP_BUFF_COEF[l] += 2;
+			if(getStrength(l) >= 400 || getMagic(l) >= 400) _TP_BUFF_COEF[l] += 2;
+			if(getStrength(l) >= 600 || getMagic(l) >= 600) _TP_BUFF_COEF[l] += 2;
+			if(_life_ratio < 0.9) _REL_SHIELD_COEF[l] += 0.2;
+			if(_life_ratio < 0.8) _REL_SHIELD_COEF[l] += 0.2;
+			if(_life_ratio < 0.7) _REL_SHIELD_COEF[l] += 0.2;
+			if(_life_ratio < 0.6) _REL_SHIELD_COEF[l] += 0.2;
+			if(_life_ratio < 0.5) _REL_SHIELD_COEF[l] += 0.2;
+			if(_life_ratio < 0.4) _REL_SHIELD_COEF[l] += 0.2;
+			if(_life_ratio < 0.3) _REL_SHIELD_COEF[l] += 0.2;
+		}else{
+			if(isAlly(l)){
+				if(_life_ratio < 0.9) _HEAL_COEF[l] += 0.5;
+				if(_life_ratio < 0.7) _HEAL_COEF[l] += 1;
+				if(_life_ratio < 0.5) _HEAL_COEF[l] += 1.5;
+				if(_life_ratio < 0.3) _HEAL_COEF[l] += 2;
+				if(getLife(l) == getTotalLife(l)) _COEF_MAX_HP_BOOST[l] += 3;
+				if(eType != "ENTITY_HEALER_BULB" || "ENTITY_METALLIC_BULB"){
+				if(getStrength(l) < 100) _STR_BUFF_COEF[l] += 3;
+				if(getStrength(l) < 200) _STR_BUFF_COEF[l] += 3;
+				if(getStrength(l) < 300) _STR_BUFF_COEF[l] += 3;
+				if(getStrength(l) < 400) _STR_BUFF_COEF[l] += 3;
+				}
+				if(getMP(l) < 5) _MP_BUFF_COEF[l] += 3;
+				if(getMP(l) < 7) _MP_BUFF_COEF[l] += 2;
+				if(getMP(l) < 9) _MP_BUFF_COEF[l] += 2;
+				if(getTP(l) < 5) _TP_BUFF_COEF[l] += 4;
+				if(getTP(l) < 7) _TP_BUFF_COEF[l] += 3;
+				if(getTP(l) < 9) _TP_BUFF_COEF[l] += 2;
+			}else{
+				if(!isSummon(l)){
+					if(_life_ratio < 0.9) _ATTACK_COEF[l] += 1;
+					if(_life_ratio < 0.7) _ATTACK_COEF[l] += 2;
+					if(_life_ratio < 0.5) _ATTACK_COEF[l] += 3;
+					if(_life_ratio < 0.3) _ATTACK_COEF[l] += 4;
+					if(getStrength(l) > 100) _STR_DEBUFF_COEF[l] += 2;
+					if(getStrength(l) > 200) _STR_DEBUFF_COEF[l] += 2;
+					if(getStrength(l) > 300) _STR_DEBUFF_COEF[l] += 3;
+					if(getStrength(l) > 400) _STR_DEBUFF_COEF[l] += 4;
+					if(getStrength(l) > 600) _STR_DEBUFF_COEF[l] += 5;
+					if(getMagic(l) > 100) _MAGIC_DEBUFF_COEF[l] += 2;
+					if(getMagic(l) > 200) _MAGIC_DEBUFF_COEF[l] += 2;
+					if(getMagic(l) > 300) _MAGIC_DEBUFF_COEF[l] += 3;
+					if(getMagic(l) > 400) _MAGIC_DEBUFF_COEF[l] += 4;
+					if(getStrength(l)||getMagic(l) > 100) _MP_DEBUF_COEF[l] += 3;
+					if(getStrength(l)||getMagic(l) > 200) _MP_DEBUF_COEF[l] += 4;
+					if(getStrength(l)||getMagic(l) > 300) _MP_DEBUF_COEF[l] += 5;
+					if(getStrength(l)||getMagic(l) > 400) _MP_DEBUF_COEF[l] += 3;
+					if(getStrength(l)||getMagic(l) > 100) _TP_DEBUF_COEF[l] += 3;
+					if(getStrength(l)||getMagic(l) > 200) _TP_DEBUF_COEF[l] += 3;
+					if(getStrength(l)||getMagic(l) > 300) _TP_DEBUF_COEF[l] += 4;
+					if(getStrength(l)||getMagic(l) > 400) _TP_DEBUF_COEF[l] += 5;
+				}else{
+					if(isSummon(l)){
+						if(_life_ratio < 0.9) _ATTACK_COEF[l] += 0.5;
+						if(_life_ratio < 0.7) _ATTACK_COEF[l] += 1;
+						if(_life_ratio < 0.5) _ATTACK_COEF[l] += 1.5;
+						if(_life_ratio < 0.3) _ATTACK_COEF[l] += 2;
+						if(getStrength(l) > 100) _ATTACK_COEF[l] += 2;
+						if(getStrength(l) > 200) _ATTACK_COEF[l] += 1;
+						if(getStrength(l) > 300) _ATTACK_COEF[l] += 2;
+						if(getStrength(l) > 400) _ATTACK_COEF[l] += 3;
+						if(getWisdom(l) > 100) _ATTACK_COEF[l] += 2;
+						if(getWisdom(l) > 200) _ATTACK_COEF[l] += 3;
+						if(getWisdom(l) > 300) _ATTACK_COEF[l] += 4;
+						if(getWisdom(l) > 400) _ATTACK_COEF[l] += 5;
+						if(getResistance(l) > 100) _ATTACK_COEF[l] += 1;
+						if(getResistance(l) > 200) _ATTACK_COEF[l] += 2;
+						if(getResistance(l) > 300) _ATTACK_COEF[l] += 3;
+					}
+				}
+			}
+		} 
+	}
+}
+
+function getSpecialChipScore(chip){
+	var chipscore = 0;
+	var effects;
+	var score;
+	if(chip == CHIP_PUNY_BULB){
+		if(getCooldown(chip) > 0) return 0; 
+		if(_PUNY_COUNT == 0) return 150;
+		if(_PUNY_COUNT == 1) return 70;
+		if(_PUNY_COUNT == 2) return 50;
+		else return 0;
+	}
+	if(chip == CHIP_ICED_BULB){
+		if(getCooldown(chip) > 0) return 0;
+		if(_ICED_COUNT == 0) return 270;
+		if(_ICED_COUNT == 1) return 120;
+		if(_ICED_COUNT == 2) return 60;
+		else return 30;
+	}
+	if(chip == CHIP_ROCKY_BULB){
+		if(getCooldown(chip) > 0) return 0;
+		if(_ROCKY_COUNT == 0) return 200;
+		if(_ROCKY_COUNT == 1) return 100;
+		if(_ROCKY_COUNT == 2) return 50;
+		else return 20;
+	}
+	if(chip == CHIP_HEALER_BULB){
+		if(getCooldown(chip) > 0) return 0;
+		if(_HEALER_COUNT == 0) return 400;
+		if(_HEALER_COUNT == 1) return 250;
+		if(_HEALER_COUNT == 2) return 200;
+		else return 100;
+	}
+	if(chip == CHIP_FIRE_BULB){
+		if(getCooldown(chip) > 0) return 0;
+		if(_FIRE_COUNT == 0) return 350;
+		if(_FIRE_COUNT == 1) return 230;
+		if(_FIRE_COUNT == 2) return 150;
+		else return 90;
+	}
+	if(chip == CHIP_METALLIC_BULB){
+		if(getCooldown(chip) > 0) return 0;
+		if(_METALLIC_COUNT == 0) return 390;
+		if(_METALLIC_COUNT == 1) return 150;
+		if(_METALLIC_COUNT == 2) return 110;
+		else return 0;
+	}
+	if(chip == CHIP_LIGHTNING_BULB){
+		if(getCooldown(chip) > 0) return 0;
+		if(_LIGHTNING_COUNT == 0) return 380;
+		if(_LIGHTNING_COUNT == 1) return 260;
+		if(_LIGHTNING_COUNT == 2) return 150;
+		else return 0;
+	}
+	if(chip == CHIP_ANTIDOTE){
+		if(getCooldown(chip) > 0) return 0;
+		effects = getEffects();
+		score = 0;
+		for (var i = 0; i < count(effects); i++) {
+			if(effects[i][0] == EFFECT_POISON) score += effects[i][1]*_HEAL_COEF[_SELF];
+		}
+		return score;
+	}
+}
+function getActionScore(@action){//action must be in form item,cell
+	startOperationTest();
+	var score = 0;
+	var item = action[0];
+	var area = _AREA[item];
+	var effect = _ITEM_EFFECTS[item];
+	var targetCell = action[1];
+	var canDo = _REACHABLE_CELLS[getCellToUseItemOnCell(item, targetCell)] != null;
+	var targets = _ISWEAP[item]? getWeaponTargets(item, targetCell) : getChipTargets(item, targetCell);
+	for (var target in targets) {
+		if(effect == EFFECT_ABSOLUTE_SHIELD){
+			score += _ITEM_VALUE[item] * _ABS_SHIELD_COEF[target] * getResistance()/100+1;
+		}
+		if(effect == EFFECT_RELATIVE_SHIELD){
+			score += _ITEM_VALUE[item] * _REL_SHIELD_COEF[target] * getResistance()/100+1;
+		}
+		if(effect == EFFECT_BOOST_MAX_LIFE){
+			score += _ITEM_VALUE[item] * _COEF_MAX_HP_BOOST[target] * getWisdom()/100+1;
+		}
+		if(effect == EFFECT_BUFF_FORCE){
+			score += _ITEM_VALUE[item] * _STR_BUFF_COEF[target] * getScience()/100+1;
+		}
+		if(effect == EFFECT_BUFF_MP){
+			score += _ITEM_VALUE[item] * _MP_BUFF_COEF[target] *50* getScience()/100+1;
+		}
+		if(effect == EFFECT_BUFF_STRENGTH){
+			score += _ITEM_VALUE[item] * _STR_BUFF_COEF[target] * getScience/100 +1;
+		}
+		if(effect == EFFECT_BUFF_TP){
+			score += _ITEM_VALUE[item] * _TP_BUFF_COEF[target] * 50 * getScience()/100 + 1;
+		}
+		if(effect == EFFECT_DAMAGE){
+			score += _ITEM_VALUE[item] * _ATTACK_COEF[target] * getStrength()/100+1;
+		}
+		if(effect == EFFECT_DEBUFF){
+			score += 60/100 * _ABS_SHIELD[target] + 60/100 * _REL_SHIELD[target] + 60/100 * _HEAL[target];
+		}
+		if(effect = EFFECT_HEAL){
+			score += _ITEM_VALUE[item] * _HEAL_COEF[target] * getWisdom()/100 + 1;
+		}
+		if(effect == EFFECT_POISON){
+			score += _ITEM_VALUE[item] * _ATTACK_COEF[target] * getMagic()/100+1;
+		}
+		if(effect == EFFECT_RELATIVE_SHIELD){
+			score += _ITEM_VALUE[item] * _REL_SHIELD_COEF[target] * getResistance()/100+1;
+		}
+		if(effect == EFFECT_SHACKLE_MAGIC){
+			score += _ITEM_VALUE[item] * _MAGIC_DEBUFF_COEF[target] * getMagic()/100+1;
+		}
+		if(effect == EFFECT_SHACKLE_MP){
+			score += _ITEM_VALUE[item] * _MP_DEBUF_COEF[target] *50* getMagic()/100+1;
+		}
+		if(effect = EFFECT_SHACKLE_STRENGTH){
+			score += _ITEM_VALUE[item] * _STR_DEBUFF_COEF[target] * getMagic()/100+1;
+		}
+		if(effect == EFFECT_SHACKLE_TP){
+			score += _ITEM_VALUE[item] * _TP_DEBUF_COEF[target] * 50 * getMagic()/100+1;
+		}
+	}
+	stopOperationTest("coût du scoring (par action)");
+	return score;
+}
