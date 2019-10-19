@@ -1,0 +1,193 @@
+include("auto");
+function getShootableCells(@from, @object)
+{
+	var objectType = 0;
+	var cells;
+	var shootableCells = [];
+	var accessibleCells = getAccessibleCells(from);
+	if(isWeapon(object)) objectType = 1;
+	else objectType = 2;
+	for (var i = 0; i < 613; i++) {
+		if(objectType == 1) cells = getCellsToUseWeaponOnCell(object, i);
+		else cells = getCellsToUseChipOnCell(object, i);
+		for (var cell in cells) {
+			if (inArray(accessibleCells, cell)) {
+				push(shootableCells, i);
+				break;
+			}
+		}
+	}
+	return shootableCells;
+}
+function setDangerMap(@item, @entity, @target){//return map as an array [cell:dmg]
+	var cells = getShootableCells(entity,  item);
+	var area = _AREA[item];
+	var map = [], dmg, effect = _ITEM_EFFECTS[item], effectiveArea;
+	var cost = _ITEMCOST[item];
+	var coef = 0, tp = getTP(entity);
+	while (tp >= cost) {
+		coef = coef + 1;
+		tp = tp - cost;
+	}
+	if(effect == EFFECT_DAMAGE) dmg = _ITEM_VALUE[item]*(1+getStrength(entity)/100);
+	else dmg = _ITEM_VALUE[item]*(1+getMagic(entity)/100);
+	dmg = dmg-getRelativeShield(target)*dmg-getAbsoluteShield(target);
+	if(area == AREA_POINT){
+		for (var cell in cells) {
+			map[cell] = dmg*coef;
+		}
+	}else if(area == AREA_CIRCLE_1){
+		for (var cell in cells) {
+			map[cell] = dmg*coef;
+			if(_ISWEAP[item]) effectiveArea = getWeaponEffectiveArea(item, cell);
+			else effectiveArea = getChipEffectiveArea(item, cell);
+			for (var i in effectiveArea) {
+				if(!inArray(map, i)) map[i] = dmg/2*coef;
+			}
+		}
+	}else if(area == AREA_CIRCLE_2){
+		for (var cell in cells) {
+			map[cell] = dmg*coef;
+			if(_ISWEAP[item]) effectiveArea = getWeaponEffectiveArea(item, cell);
+			else effectiveArea = getChipEffectiveArea(item, cell);
+			for (var i in effectiveArea) {
+				if(map[i] == null){
+					if(getCellDistance(cell, i) == 1) map[i] = 75/100 * dmg*coef;
+					else map[i] = dmg/2*coef;
+				}
+			}
+		}
+	}else if(area == AREA_CIRCLE_3){
+		for (var cell in cells) {
+			map[cell] = dmg*coef;
+			if(_ISWEAP[item]) effectiveArea = getWeaponEffectiveArea(item, cell);
+			else effectiveArea = getChipEffectiveArea(item, cell);
+			for (var i in effectiveArea) {
+				if(map[i] == null){
+					if(getCellDistance(cell, i) == 1) map[i] = 83/100 * dmg*coef;
+					else if(getCellDistance(cell, i) == 2) map[i] = 67/100 * dmg*coef;
+					else map[i] = dmg/2*coef;
+				}
+			}
+		}
+	}else if(area == AREA_LASER_LINE){
+		for (var cell in cells) {
+			map[cell] = dmg*coef;
+		}
+	}
+	for (var i = 0; i < _MAX_CELLS; i++) {
+		if(map[i] == null) map[i] = 0;
+	}
+	return map;
+}
+
+function sortMapForCells(@map, @entity){
+	var _ACELLS = getReachableCells(entity, getMP(entity));
+	var _CELLS = [];
+	for (var cell : var dmg in map) {
+		if(_ACELLS[cell] != null) _CELLS[cell] = dmg;
+	}
+	return _CELLS;
+}
+
+function getSafestCell(@map){//map must be in form  [cell:dmg]
+	var _DMG = [], _CELLS = [], _SAFE, _SAFE_CELLS = [];
+	for (var cell : var dmg in map) {
+		push(_DMG, dmg);
+		push(_CELLS, cell);
+	}
+	_SAFE = arrayMin(_DMG);
+	for (var cell : var dmg in map) {
+		if(dmg == _SAFE) push(_SAFE_CELLS, cell);
+	}
+	var distance = [];
+	_CELLS = [];
+	for (var cell in _SAFE_CELLS) {
+			push(distance, getDistance(cell, getCell(getNearestELeek())));
+			push(_CELLS, cell);
+	}
+	_DANGER = _SAFE;
+	return _CELLS[search(distance, arrayMin(distance))];
+}
+/*_MAP_DANGER = getStrength(getNearestELeek()) > 200? sortMapForCells(setDangerMap(WEAPON_GRENADE_LAUNCHER,  getNearestELeek(),  _SELF),  _SELF): sortMapForCells(setDangerMap(WEAPON_FLAME_THROWER,  getNearestELeek(),  _SELF),  _SELF);
+*/
+
+/*function prepareDamageMap(){
+	for (var i = 0; i < _MAX_CELLS; i++) {
+		_DANGER_MAP[i] = 0;
+	}
+}*/
+function addItemToMap(item, entity, target){
+	var cells = getShootCells(item,  entity);
+	var area = _AREA[item];
+	var dmg, effect = _ITEM_EFFECTS[item], effectiveArea;
+	var cost = _ITEMCOST[item];
+	var coef = 0, tp = getTP(entity);
+	while (tp >= cost) {
+		coef = coef + 1;
+		tp = tp - cost;
+	}
+	if(_ITEM_HAVECD[item]) coef = 1;
+	if(effect == EFFECT_DAMAGE) dmg = _ITEM_VALUE[item]*(1+getStrength(entity)/100);
+	else dmg = _ITEM_VALUE[item]*(1+getMagic(entity)/100);
+	if(effect == EFFECT_DAMAGE) dmg = dmg-getRelativeShield(target)*dmg-getAbsoluteShield(target);
+	if(area == AREA_POINT){
+		for (var cell in cells) {
+			if(_DANGER_MAP[cell] == null || _DANGER_MAP[cell] < dmg*coef)_DANGER_MAP[cell] = dmg*coef;
+		}
+	}else if(area == AREA_CIRCLE_1){
+		for (var cell in cells) {
+			if(_DANGER_MAP[cell] == null || _DANGER_MAP[cell] < dmg*coef) _DANGER_MAP[cell] = dmg*coef;
+			if(_ISWEAP[item]) effectiveArea = getWeaponEffectiveArea(item, cell);
+			else effectiveArea = getChipEffectiveArea(item, cell);
+			for (var i in effectiveArea) {
+				if(_DANGER_MAP[cell] == null || _DANGER_MAP[i] < dmg/2*coef) _DANGER_MAP[i] = dmg/2*coef;
+			}
+		}
+	}else if(area == AREA_CIRCLE_2){
+		for (var cell in cells) {
+			if(_DANGER_MAP[cell] == null || _DANGER_MAP[cell] < dmg*coef) _DANGER_MAP[cell] = dmg*coef;
+			if(_ISWEAP[item]) effectiveArea = getWeaponEffectiveArea(item, cell);
+			else effectiveArea = getChipEffectiveArea(item, cell);
+			for (var i in effectiveArea) {
+					if(getCellDistance(cell, i) == 1) if(_DANGER_MAP[i] == null || _DANGER_MAP[i] > dmg*coef * (75/100)) _DANGER_MAP[i] = 75/100 * dmg*coef;
+					else if(_DANGER_MAP[i] == null || _DANGER_MAP[i] > dmg/2*coef) _DANGER_MAP[i] = dmg/2*coef;
+			}
+		}
+	}else if(area == AREA_CIRCLE_3){
+		for (var cell in cells) {
+			if(_DANGER_MAP[cell] == null || _DANGER_MAP[cell] > dmg*coef) _DANGER_MAP[cell] = dmg*coef;
+			if(_ISWEAP[item]) effectiveArea = getWeaponEffectiveArea(item, cell);
+			else effectiveArea = getChipEffectiveArea(item, cell);
+			for (var i in effectiveArea) {
+					if(getCellDistance(cell, i) == 1) if(_DANGER_MAP[i] == null || _DANGER_MAP[i] > dmg*coef * (83/100)) _DANGER_MAP[i] = 83/100 * dmg*coef;
+					else if(getCellDistance(cell, i) == 2) if(_DANGER_MAP[i] == null || _DANGER_MAP[i] > dmg*coef * (67/100)) _DANGER_MAP[i] = 67/100 * dmg*coef;
+					else if(_DANGER_MAP[i] == null || _DANGER_MAP[i] > dmg/2*coef) _DANGER_MAP[i] = dmg/2*coef;
+			}
+		}
+	}else if(area == AREA_LASER_LINE){
+		for (var cell in cells) {
+			if(_DANGER_MAP[cell] == null ||_DANGER_MAP[cell] > dmg*coef) _DANGER_MAP[cell] = dmg*coef;
+		}
+	}
+}
+
+function setAdvancedDangerMap(entity, target){
+	var stuff = getWeapons(entity)+filterInventory(entity), testItems = [];
+	for (var item in stuff) {
+		if(_IS_POSITIV_EFFECTS[item] == false || _ISWEAP[item]) push(testItems, item);
+	}
+	removeElement(testItems, CHIP_LIBERATION);
+	for (var i in testItems) {
+		debug(getWeaponName(i) + getChipName(i));
+	}
+	for (var i in testItems) {
+		addItemToMap(i,  entity,  target);
+	}
+	return @_DANGER_MAP;
+}
+_MAP_DANGER = setAdvancedDangerMap(getNearestELeek(), _SELF);
+
+function getCellDammage(cell){
+	return _MAP_DANGER[cell];
+}
