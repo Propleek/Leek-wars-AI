@@ -139,8 +139,8 @@ function circleEffectiveArea3(@cell){
 	return @cells;
 }
 function getCellToUseItem(item, leek){
-	if(_ISWEAP[item]) return getCellToUseWeapon(item, leek);
-	else return getCellToUseChip(item, leek);
+		if(_ISWEAP[item]) return getCellToUseWeapon(item, leek);
+		else return getCellToUseChip(item, leek);
 }
 function getCellToUseItemOnCell(item, cell){
 	if(_ISWEAP[item]) return getCellToUseWeaponOnCell(item, cell);
@@ -166,7 +166,7 @@ function canAoE(item, target, from){
 function colorMap(){
     var max=getLife();
     var white = getColor(255, 255, 255);
-    for(var cell: var dmg in _DANGER_MAP){
+    for(var cell: var dmg in _MAP_DANGER){
         if(dmg>=max) mark(cell, white);
         else mark(cell, getColor(dmg/max*255, 255-(dmg/max*255), 0));
     }
@@ -187,7 +187,6 @@ function clearAllRegisters(){
 }
 
 function myGetCellsToUseItem(@item, @cell){
-	startOperationTest();
 	var inline = _ITEM_INLINE[item];
 	var minRange = _ITEM_MINRANGE[item];
 	var maxRange = _ITEM_MAXRANGE[item];
@@ -201,7 +200,6 @@ function myGetCellsToUseItem(@item, @cell){
 		if(getCellDistance(c, cell) > maxRange) continue;
 		push(cells, c);
 	}
-	stopOperationTest("cost getCellToUseItem");
 	if(!isEmpty(@cells)) return @cells;
 	else return null;
 }
