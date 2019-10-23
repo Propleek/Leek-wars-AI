@@ -2,12 +2,21 @@
 
 global _SELF = getLeek();
 global _STUFF = getWeapons()+getChips();
-global _TO_REMOVE_TO_STUFF = [CHIP_ANTIDOTE, CHIP_TELEPORTATION, CHIP_INVERSION, CHIP_REGENERATION, CHIP_LIBERATION];
+global _TO_REMOVE_TO_STUFF = [
+	CHIP_ANTIDOTE:true, 
+	CHIP_TELEPORTATION:true, 
+	CHIP_INVERSION:true, 
+	CHIP_REGENERATION:true
+];
+global _IN_ALGO = [
+	CHIP_TELEPORTATION:false,
+	CHIP_INVERSION:false,
+];
 global _ENCODING_STUFF = [];
 for (var item in _STUFF) {
 	_ENCODING_STUFF[item] = true;
 }
-for (var i in _TO_REMOVE_TO_STUFF) {
+for (var i : var bool in _TO_REMOVE_TO_STUFF) {
 	removeElement(_STUFF, i);
 }
 global _DECODING_STUFF = [];
@@ -139,6 +148,7 @@ global _RATIO_RISK;
 
 global _MAX_CELLS = 612;
 global _OBSTACLES = [];
+global _MAX_ITEM_ID = 111;
 
 global _ISONLYBULB = [
 	CHIP_ACCELERATION:true,
