@@ -53,30 +53,36 @@ function getEntityType(entity){
 	}
 }
 if(getTurn() == 1){
-	for (var i = 0; i < 111; i++) {
-		if(isWeapon(i)) _ISWEAP[i] = true;
-		else _ISWEAP[i] = false;
-		if(_ISWEAP[i]) _ITEM_MINRANGE[i] = getWeaponMinRange(i);
-		else _ITEM_MINRANGE[i] = getChipMinRange(i);
-		if(_ISWEAP[i]) _ITEM_MAXRANGE[i] = getWeaponMaxRange(i);
-		else _ITEM_MAXRANGE[i] = getChipMaxRange(i);
-		if(_ISWEAP[i]) _NEEDLOS[i] = weaponNeedLos(i);
-		else _NEEDLOS[i] = chipNeedLos(i);
-		if(_ISWEAP[i]) _ITEMCOST[i] = getWeaponCost(i);
-		else _ITEMCOST[i] = getChipCost(i);
-		if(_ISWEAP[i]) _AREA[i] = getWeaponArea(i);
-		else _AREA[i] = getChipArea(i);
-		if(_ISWEAP[i] && i != WEAPON_FLAME_THROWER) _ITEM_EFFECTS[i] = getWeaponEffects(i)[0][0];
-		else _ITEM_EFFECTS[i] = getChipEffects(i)[0][0];
-		if(_ISWEAP[i] && i != WEAPON_FLAME_THROWER) _ITEM_VALUE[i] = getWeaponEffects(i)[0][1];
-		else _ITEM_VALUE[i] = getChipEffects(i)[0][1];
-		if(_ISWEAP[i] && i == WEAPON_FLAME_THROWER) _ITEM_EFFECTS[i] = getWeaponEffects(i)[1][0];
-		if(_ISWEAP[i] && i == WEAPON_FLAME_THROWER) _ITEM_VALUE[i] = getWeaponEffects(i)[1][1];
-		if(_ISWEAP[i]) _ITEM_INLINE[i] = getWeaponArea(i) == AREA_LASER_LINE? true:false;
-		else _ITEM_INLINE[i] = getChipArea(i) == AREA_LASER_LINE? true:false;
-		if(i == WEAPON_GAZOR) _ITEM_INLINE[i] == true;
-		if(_ISWEAP[i]) _ITEM_HAVECD[i] = false;
-		else getChipCooldown(i) != 0? _ITEM_HAVECD[i] = true: _ITEM_HAVECD = false;
+	for (var i = 0; i < _MAX_ITEM_ID; i++) {
+		if(isWeapon(i)){
+			_ISWEAP[i] = true;
+			_ITEM_MINRANGE[i] = getWeaponMinRange(i);
+			_ITEM_MAXRANGE[i] = getWeaponMaxRange(i);
+			_AREA[i] = getWeaponArea(i);
+			_ITEMCOST[i] = getWeaponCost(i);
+			_NEEDLOS[i] = weaponNeedLos(i);
+			if(i != WEAPON_FLAME_THROWER){
+				_ITEM_EFFECTS[i] = getWeaponEffects(i)[0][0];
+				_ITEM_VALUE[i] = getWeaponEffects(i)[0][1];
+			}else{
+				_ITEM_EFFECTS[i] = getWeaponEffects(i)[1][0];
+				_ITEM_VALUE[i] = getWeaponEffects(i)[1][1];
+			} 
+			_ITEM_INLINE[i] = getWeaponArea(i) == AREA_LASER_LINE? true:false;
+			_ITEM_HAVECD[i] = false;
+		}
+		else{
+			_ISWEAP[i] = false;
+			_ITEM_MINRANGE[i] = getChipMinRange(i);
+			_ITEM_MAXRANGE[i] = getChipMaxRange(i);
+			_AREA[i] = getChipArea(i);
+			_ITEMCOST[i] = getChipCost(i);
+			_NEEDLOS[i] = chipNeedLos(i);
+			_ITEM_EFFECTS[i] = getChipEffects(i)[0][0];
+			_ITEM_VALUE[i] = getChipEffects(i)[0][1];
+			_ITEM_INLINE[i] = getChipArea(i) == AREA_LASER_LINE? true:false;
+			_ITEM_HAVECD[i] = getChipCooldown(i) == 0? false:true;
+		}
 	}
 	for (var i = 0; i <= _MAX_CELLS; i++) {
 		if(isObstacle(i)) _OBSTACLES[i] = true;//test cellules libres avec _OBSTACLES[i] == null
@@ -86,6 +92,8 @@ if(getTurn() == 1){
 	}
 }
 function updateGameState(){
+	allies = [];
+	enemies = [];
 	for (var l in getAliveAllies()+getAliveEnemies()) {
 		_LIFE[l] = getLife(l);
 		_ABS_SHIELD[l] = getAbsoluteShield(l);
@@ -103,17 +111,16 @@ function updateGameState(){
 		_MGC[l] = getMagic(l);
 		var eType = getEntityType(l);
 		if(isAlly(l)){
-		if(eType == ENTITY_PUNY_BULB) _PUNY_COUNT += 1;
-		if(eType == ENTITY_ICED_BULB) _ICED_COUNT += 1;
-		if(eType == ENTITY_ROCKY_BULB) _ROCKY_COUNT += 1;
-		if(eType == ENTITY_FIRE_BULB) _FIRE_COUNT += 1;
-		if(eType == ENTITY_HEALER_BULB) _HEALER_COUNT += 1;
-		if(eType == ENTITY_METALLIC_BULB) _METALLIC_COUNT += 1;
-		if(eType == ENTITY_LIGHTNING_BULB) _LIGHTNING_COUNT += 1;
+			if(eType == ENTITY_PUNY_BULB) _PUNY_COUNT += 1;
+			if(eType == ENTITY_ICED_BULB) _ICED_COUNT += 1;
+			if(eType == ENTITY_ROCKY_BULB) _ROCKY_COUNT += 1;
+			if(eType == ENTITY_FIRE_BULB) _FIRE_COUNT += 1;
+			if(eType == ENTITY_HEALER_BULB) _HEALER_COUNT += 1;
+			if(eType == ENTITY_METALLIC_BULB) _METALLIC_COUNT += 1;
+			if(eType == ENTITY_LIGHTNING_BULB) _LIGHTNING_COUNT += 1;
 		}
 		if(isAlly(l)) push(allies, l);
 		else push(enemies, l);
  	}
 }
-
 _REACHABLE_CELLS = getReachableCells(_SELF, getMP(_SELF));
