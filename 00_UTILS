@@ -48,6 +48,7 @@ function getReachableCells(@entity, @mp){
 		}
 		pathLength += 1;
 	}
+	reachableCells[getCell(entity)] = 0;
 	return @reachableCells;
 }
 function getShootCells(item, leek){
@@ -181,8 +182,8 @@ function stopOperationTest(@n){
 
 function clearAllRegisters(){
 	var register = getRegisters();
-	for (var key in register) {
-		removeElement(register, key);
+	for (var key: var val in register) {
+		deleteRegister(key);
 	}
 }
 
@@ -200,12 +201,11 @@ function myGetCellsToUseItem(@item, @cell){
 		if(getCellDistance(c, cell) > maxRange) continue;
 		push(cells, c);
 	}
-	if(!isEmpty(@cells)) return @cells;
-	else return null;
+	return @cells;
 }
 function myGetCellToUseItem(@item,  @cell){
 	var cells = myGetCellsToUseItem(item,  cell);
-	if(cells == null) return null;
+	if(count(cells) == 0) return null;
 	var distance = [];
 	for (var i in cells) {
 		push(distance, _REACHABLE_CELLS[i]);
@@ -234,4 +234,22 @@ function getListOfLeeksWhoPlayBefore(@leek){
 		if(turnOrder[i] > ref) remove(group, i);
 	}
 	return @group;
+}
+function getAoePercentage(@aoe, @center, @cell){
+	if(center == cell) return 100;
+	if(aoe == 1) return 50;
+	if(aoe == 2){
+		if(getCellDistance(center, cell) == 1) return 75;
+		else return 50;
+	}
+	if(aoe == 3){
+		if(getCellDistance(center, cell) == 1) return 83;
+		if(getCellDistance(center, cell) == 2) return 67;
+		else return 50;
+	}
+}
+function getDmg(realValue, target){
+	var absShield = _ABS_SHIELD[target];
+	var relShield = _REL_SHIELD[target];
+	return realValue-(relShield/100*realValue) - absShield;
 }
