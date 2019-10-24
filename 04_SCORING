@@ -1,7 +1,7 @@
 include("auto");
 //on score les actions pour ensuite pouvoir sortir des combos utiles:
 
-function updateCoefs(leeks){
+function updateCoefs(@leeks){
 	for (var l in leeks){
 		//d'abord reset tous les coefs
 		_LIBE_COEF[l] = 1;
@@ -23,6 +23,9 @@ function updateCoefs(leeks){
 		var _life_ratio = getLife(l)/getTotalLife(l);
 		var eType = getEntityType(l);
 		if(!isSummon(l) && isAlly(l)){
+			_ATTACK_COEF[l] = -1;
+			_MP_DEBUF_COEF[l] = -1;
+			_TP_DEBUF_COEF[l] = -1;//je fais pas de négatif pour les str et mgc debuf vu que ça n'éxiste pas en AoE et que je teste pas les chips à effets négatifs sur mes alliés pour des raisons évidentes
 			if(_life_ratio < 0.9) _HEAL_COEF[l] += 1;
 			if(_life_ratio < 0.7) _HEAL_COEF[l] += 2;
 			if(_life_ratio < 0.5) _HEAL_COEF[l] += 3;
@@ -48,6 +51,29 @@ function updateCoefs(leeks){
 			if(_life_ratio < 0.5) _REL_SHIELD_COEF[l] += 0.2;
 			if(_life_ratio < 0.4) _REL_SHIELD_COEF[l] += 0.2;
 			if(_life_ratio < 0.3) _REL_SHIELD_COEF[l] += 0.2;
+			if(_life_ratio < 0.9) _ATTACK_COEF[l] -= 1;
+			if(_life_ratio < 0.7) _ATTACK_COEF[l] -= 1;
+			if(_life_ratio < 0.5) _ATTACK_COEF[l] -= 1;
+			if(_life_ratio < 0.3) _ATTACK_COEF[l] -= 1;
+			if(_life_ratio < 0.1) _ATTACK_COEF[l] -= 1;
+			if(getMP(l) < 10) _MP_DEBUF_COEF[l] -= 1;
+			if(getMP(l) < 8) _MP_DEBUF_COEF[l] -= 1;
+			if(getMP(l) < 6) _MP_DEBUF_COEF[l] -= 1;
+			if(getMP(l) < 4) _MP_DEBUF_COEF[l] -= 1;
+			if(getTP(l) < 22) _TP_DEBUF_COEF[l] -= 1;
+			if(getTP(l) < 18) _TP_DEBUF_COEF[l] -= 1;
+			if(getTP(l) < 15) _TP_DEBUF_COEF[l] -= 1;
+			if(getTP(l) < 12) _TP_DEBUF_COEF[l] -= 1;
+			if(getTotalLife(l) < 2000) _COEF_MAX_HP_BOOST[l] += 1;
+			if(getTotalLife(l) < 1800) _COEF_MAX_HP_BOOST[l] += 1;
+			if(getTotalLife(l) < 1600) _COEF_MAX_HP_BOOST[l] += 1;
+			if(getTotalLife(l) < 1400) _COEF_MAX_HP_BOOST[l] += 1;
+			if(getTotalLife(l) < 1200) _COEF_MAX_HP_BOOST[l] += 1;
+			if(getTotalLife(l) < 1000) _COEF_MAX_HP_BOOST[l] += 1;
+			if(getTotalLife(l) < 800) _COEF_MAX_HP_BOOST[l] += 2;
+			if(getTotalLife(l) < 600) _COEF_MAX_HP_BOOST[l] += 2;
+			if(getTotalLife(l) < 400) _COEF_MAX_HP_BOOST[l] += 1;
+			
 		}else{
 			if(isAlly(l)){
 				if(_life_ratio < 0.9) _HEAL_COEF[l] += 0.5;
@@ -55,7 +81,7 @@ function updateCoefs(leeks){
 				if(_life_ratio < 0.5) _HEAL_COEF[l] += 1.5;
 				if(_life_ratio < 0.3) _HEAL_COEF[l] += 2;
 				if(getLife(l) == getTotalLife(l)) _COEF_MAX_HP_BOOST[l] += 3;
-				if(eType != "ENTITY_HEALER_BULB" || "ENTITY_METALLIC_BULB"){
+				if(eType != ENTITY_HEALER_BULB || ENTITY_METALLIC_BULB){
 				if(getStrength(l) < 100) _STR_BUFF_COEF[l] += 3;
 				if(getStrength(l) < 200) _STR_BUFF_COEF[l] += 3;
 				if(getStrength(l) < 300) _STR_BUFF_COEF[l] += 3;
@@ -69,6 +95,7 @@ function updateCoefs(leeks){
 				if(getTP(l) < 9) _TP_BUFF_COEF[l] += 2;
 			}else{
 				if(!isSummon(l)){
+					_HEAL_COEF[l] = -1;// même chose pas la peine de tester les boost vu qu'ils ne touchent pas les enemis
 					if(_life_ratio < 0.9) _ATTACK_COEF[l] += 1;
 					if(_life_ratio < 0.7) _ATTACK_COEF[l] += 2;
 					if(_life_ratio < 0.5) _ATTACK_COEF[l] += 3;
@@ -90,6 +117,11 @@ function updateCoefs(leeks){
 					if(getStrength(l)||getMagic(l) > 200) _TP_DEBUF_COEF[l] += 3;
 					if(getStrength(l)||getMagic(l) > 300) _TP_DEBUF_COEF[l] += 4;
 					if(getStrength(l)||getMagic(l) > 400) _TP_DEBUF_COEF[l] += 5;
+					if(_life_ratio < 0.9) _HEAL_COEF[l] -= 2;
+					if(_life_ratio < 0.7) _HEAL_COEF[l] -= 2;
+					if(_life_ratio < 0.5) _HEAL_COEF[l] -= 2;
+					if(_life_ratio < 0.3) _HEAL_COEF[l] -= 2;
+					if(_life_ratio < 0.1) _HEAL_COEF[l] -= 2;
 				}else{
 					if(isSummon(l)){
 						if(_life_ratio < 0.9) _ATTACK_COEF[l] += 0.5;
@@ -100,6 +132,7 @@ function updateCoefs(leeks){
 						if(getStrength(l) > 200) _ATTACK_COEF[l] += 1;
 						if(getStrength(l) > 300) _ATTACK_COEF[l] += 2;
 						if(getStrength(l) > 400) _ATTACK_COEF[l] += 3;
+						if(getStrength(l) > 600) _ATTACK_COEF[l] += 5;
 						if(getWisdom(l) > 100) _ATTACK_COEF[l] += 2;
 						if(getWisdom(l) > 200) _ATTACK_COEF[l] += 3;
 						if(getWisdom(l) > 300) _ATTACK_COEF[l] += 4;
@@ -178,7 +211,6 @@ function getSpecialChipScore(chip){
 	}
 }
 function getActionScore(@action){//action must be in form item,cell
-	startOperationTest();
 	var score = 0;
 	var item = action[0];
 	var area = _AREA[item];
@@ -187,6 +219,7 @@ function getActionScore(@action){//action must be in form item,cell
 	var canDo = _REACHABLE_CELLS[getCellToUseItemOnCell(item, targetCell)] != null;
 	var targets = _ISWEAP[item]? getWeaponTargets(item, targetCell) : getChipTargets(item, targetCell);
 	for (var target in targets) {
+		var lifeMissing = getTotalLife(target)-getLife(target);
 		if(effect == EFFECT_ABSOLUTE_SHIELD){
 			score += _ITEM_VALUE[item] * _ABS_SHIELD_COEF[target] * getResistance()/100+1;
 		}
@@ -203,7 +236,7 @@ function getActionScore(@action){//action must be in form item,cell
 			score += _ITEM_VALUE[item] * _MP_BUFF_COEF[target] *50* getScience()/100+1;
 		}
 		if(effect == EFFECT_BUFF_STRENGTH){
-			score += _ITEM_VALUE[item] * _STR_BUFF_COEF[target] * getScience/100 +1;
+			score += _ITEM_VALUE[item] * _STR_BUFF_COEF[target] * getScience()/100 +1;
 		}
 		if(effect == EFFECT_BUFF_TP){
 			score += _ITEM_VALUE[item] * _TP_BUFF_COEF[target] * 50 * getScience()/100 + 1;
@@ -215,7 +248,11 @@ function getActionScore(@action){//action must be in form item,cell
 			score += 60/100 * _ABS_SHIELD[target] + 60/100 * _REL_SHIELD[target] + 60/100 * _HEAL[target];
 		}
 		if(effect = EFFECT_HEAL){
-			score += _ITEM_VALUE[item] * _HEAL_COEF[target] * getWisdom()/100 + 1;
+			if(lifeMissing >= _ITEM_VALUE[item]*(getWisdom()/100+1)){
+				score += _ITEM_VALUE[item] * _HEAL_COEF[target] * getWisdom()/100 + 1;
+			}else{
+				score += lifeMissing * _HEAL_COEF[target];
+			}
 		}
 		if(effect == EFFECT_POISON){
 			score += _ITEM_VALUE[item] * _ATTACK_COEF[target] * getMagic()/100+1;
@@ -236,6 +273,5 @@ function getActionScore(@action){//action must be in form item,cell
 			score += _ITEM_VALUE[item] * _TP_DEBUF_COEF[target] * 50 * getMagic()/100+1;
 		}
 	}
-	stopOperationTest("coût du scoring (par action)");
 	return score;
 }
