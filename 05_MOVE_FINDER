@@ -1,8 +1,30 @@
 include("auto");
 function bulbAI(){
+	updateCoefs(getAliveAllies()+getAliveEnemies());
+	_REACHABLE_CELLS = getReachableCells(getLeek(), getMP());
 	var type = getEntityType(getLeek());
-	if(type != "ENTITY_ROCKY_BULB" || "ENTITY_HEALER_BULB") var group = getAliveEnemies();
-	else var group = getAliveAllies();
+	var cell;
+	var scores = [];
+	var group;
+	for (var chip in getChips()) {
+		if(getCooldown(chip) > 0) continue;
+		scores[chip] = [];
+		if(_IS_POSITIV_EFFECTS[chip]){
+			group = getAliveAllies();
+		}else group = getAliveEnemies();
+		for (var l in group) {
+			var testCells = getChipEffectiveArea(chip, getCell(l), getCellToUseChip(chip, l));
+			for (var c in testCells) {
+				cell = myGetCellToUseItem(chip, c);
+				if(cell != null){
+					scores[chip][c] = getActionScore([chip, c]);
+				}
+			}
+		}
+	}
+	debug("scores bulbe" + scores);
+	playBestMove(findBestMove(scores));
+	moveTowardCell(getSafestCell(sortMapForCells(_MAP_DANGER, _SELF)));
 }
 function scoreAllPossibleActions(){
 	startOperationTest();
@@ -22,7 +44,8 @@ function scoreAllPossibleActions(){
 		var area = _AREA[w];//getWeaponArea en moins cher
 		for (var e in getAliveEnemies()) 
 		{
-			testCells = getWeaponEffectiveArea(w, getCell(e));
+			testCells = getWeaponEffectiveArea(w, getCell(e), getCellToUseWeapon(w, e));
+			if(area == AREA_LASER_LINE || area == AREA_POINT) testCells = [getCell(e)];
 			for (var c in testCells) 
 			{
 				cell = myGetCellToUseItem(w, c);
@@ -62,7 +85,7 @@ function scoreAllPossibleActions(){
 			if(minRange > 0) removeElement(group, getLeek());
 			for (var l in group) 
 			{
-				testCells = getChipEffectiveArea(chip, getCell(l));
+				testCells = getChipEffectiveArea(chip, getCell(l), getCellToUseChip(chip, l));
 				for (var c in testCells) 
 				{
 					cell = myGetCellToUseItem(chip, c);
@@ -94,7 +117,7 @@ function scoreAllPossibleActions(){
 			}
 			for (var l in group) 
 			{
-				testCells = getChipEffectiveArea(chip, getCell(l));
+				testCells = getChipEffectiveArea(chip, getCell(l), getCellToUseChip(chip, l));
 				for (var c in testCells) 
 				{
 					cell = myGetCellToUseItem(chip, c);
@@ -106,31 +129,32 @@ function scoreAllPossibleActions(){
 		}
 	}//end for normal chip
 	for (var item : var bool in _ENCODING_STUFF) {
-		if(_IN_ALGO[item]) continue;
-		if(_TO_REMOVE_TO_STUFF[item] && getCooldown(item) == 0) scores[item] = getSpecialChipScore(item);
+		if(_TO_REMOVE_TO_STUFF[item] && getCooldown(item) == 0 && _IN_ALGO[item] == null) {
+			scores[item] = [];
+			scores[item]["selfCell"] = getSpecialChipScore(item);
+		}
 	}
 	stopOperationTest("scoring des moves");
-	debug(@scores);
 	return @scores;
 }
-debug(scoreAllPossibleActions()+"le score des actions");
 function findBestAction(@scores){
 	var bestScore = 0;
 	var bestAction = [];
-	for(var w in getWeapon()){
+	for(var w in getWeapons()){
 		for (var cell : var score in scores[w]) {
 			if(score > bestScore){
-				bestScore = score;
-				bestAction = [w, cell];
+				debug("score testé " + score + "bestScore " + bestScore);
+				if(score > 0) bestScore = score;
+				if(score > 0)bestAction = [w, cell];
 			}
 		}
 	}//end for weapons
 	for (var chip in getChips()) {
-		if(_DECODING_STUFF[chip] == null) continue;
+		if(_IN_ALGO[chip] == false) continue;
 		for (var cell : var score in scores[chip]) {
 			if(score > bestScore){
-				bestScore = score;
-				bestAction = [chip, cell];
+				if(score > 0)bestScore = score;
+				if(score > 0)bestAction = [chip, cell];
 			}
 		}
 	}
@@ -141,6 +165,7 @@ function findBestMove(@scores){
 	var selfTP = getTP();
 	push(move, findBestAction(scores));
 	selfTP -= _ITEMCOST[move[0][0]];
+	if(getWeapon() != move[0][0] && _ISWEAP[move[0][0]]) selfTP -= 1; 
 	if(_ITEM_HAVECD[move[0][0]]) scores[move[0][0]] = [];
 	for (var item : var bool in _ENCODING_STUFF) {
 		if(selfTP < _ITEMCOST[item]) scores[item] = [];
@@ -165,10 +190,24 @@ function findBestMove(@scores){
 	for (var item : var bool in _ENCODING_STUFF) {
 		if(selfTP < _ITEMCOST[item]) scores[item] = [];
 	}
+	debug("bestMove " + move);
 	return move;
 }
 function playBestMove(@bestMove){
+	var delayedSummon = [];
 	for (var action in bestMove) {
+		if(action[0] == CHIP_PUNY_BULB|| 
+			action[0] == CHIP_ROCKY_BULB||
+			action[0] == CHIP_ICED_BULB ||
+			action[0] == CHIP_HEALER_BULB||
+			action[0] == CHIP_FIRE_BULB||
+			action[0] == CHIP_METALLIC_BULB||
+			action[0] == CHIP_LIGHTNING_BULB)
+			{
+				push(delayedSummon, action);
+				continue;
+			}
+		if(count(action) == 0) continue;
 		if(_ISWEAP[action[0]] && getWeapon() != action[0]) setWeapon(action[0]);
 		if(action[1] != "selfCell") moveTowardCell(myGetCellToUseItem(action[0], action[1]));
 		if(_ISWEAP[action[0]]) useWeaponOnCell(action[1]);
@@ -176,6 +215,10 @@ function playBestMove(@bestMove){
 			if(action[1] == "selfCell") useChip(action[0], _SELF);
 			else useChipOnCell(action[0], action[1]);
 		}
+		_REACHABLE_CELLS = getReachableCells(_SELF, getMP(_SELF));
+	}
+	moveTowardCell(getSafestCell(sortMapForCells(_MAP_DANGER, _SELF)));
+	for (var chip in delayedSummon) {
+		summon(chip[0], getCellToUseChip(chip[0], _SELF), bulbAI);
 	}
 }
-debug("bestMove" + findBestMove(scoreAllPossibleActions()));
