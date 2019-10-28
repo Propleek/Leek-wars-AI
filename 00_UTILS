@@ -49,6 +49,39 @@ function getReachableCells(@entity, @mp){
 		pathLength += 1;
 	}
 	reachableCells[getCell(entity)] = 0;
+	for (var c : var pLength in reachableCells) {
+		if(!isEmptyCell(c)) reachableCells[c] = null;
+	}
+	return @reachableCells;
+}
+function getReachableCellsFrom(@entity, @mp, @from){
+	var start = from;
+	var nextCells = [], stepCells = [];
+	var reachableCells = [];
+	var pathLength = 1;
+	var cells;
+	while (pathLength <= mp) {
+		if(pathLength == 1){
+			pushAll(nextCells, _CIRCLE_AREA1[start]);
+			removeElement(nextCells, start);
+			for (var i in nextCells) {
+				reachableCells[i] = pathLength;
+			}
+		} 
+		else{
+			stepCells = [];
+			for (var c in nextCells) {
+				cells = _CIRCLE_AREA1[c];
+				for (var c2 in cells) {
+					if(reachableCells[c2] == null && !isObstacle(c2) && isEmptyCell(c2)){reachableCells[c2] = pathLength; push(stepCells, c2);} 
+				}
+			}
+			nextCells = [];
+			pushAll(nextCells, stepCells);
+		}
+		pathLength += 1;
+	}
+	reachableCells[from] = 0;
 	return @reachableCells;
 }
 function getShootCells(item, leek){
@@ -188,6 +221,8 @@ function clearAllRegisters(){
 }
 
 function myGetCellsToUseItem(@item, @cell){
+	if(cell == "selfCell") cell = getCell();
+	if(cell == null) return [];
 	var inline = _ITEM_INLINE[item];
 	var minRange = _ITEM_MINRANGE[item];
 	var maxRange = _ITEM_MAXRANGE[item];
