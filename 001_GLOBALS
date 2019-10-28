@@ -133,6 +133,10 @@ global _STR_DEBUFF_COEF=[];
 global _MAGIC_DEBUFF_COEF = [];
 global _COEF_MAX_HP_BOOST = [];
 global _COEF_DELAYED_SUMMON = [];
+global _STR400 = false;
+global _STR300 = false;
+global _MGC400 = false;
+global _MGC300 = false;
 
 //globals pour les différetes informations des objets
 
@@ -369,3 +373,9 @@ global ENTITY_HEALER_BULB = 4;
 global ENTITY_METALLIC_BULB = 5;
 global ENTITY_FIRE_BULB = 6;
 global ENTITY_LIGHTNING_BULB = 7;
+
+global _MAIN_WEAPON;
+global _IS_TELEPORT = false;
+global _CACHE_DANGER = [];
+
+global _VIRTUAL_STATE = [];//tableau pour refresh les infos après sélection de move virtuellement
