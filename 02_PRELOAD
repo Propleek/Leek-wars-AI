@@ -53,6 +53,7 @@ function getEntityType(entity){
 	}
 }
 if(getTurn() == 1){
+	if(_ENCODING_STUFF[CHIP_TELEPORTATION]) _IS_TELEPORT = true;
 	for (var i = 0; i < _MAX_ITEM_ID; i++) {
 		if(isWeapon(i)){
 			_ISWEAP[i] = true;
@@ -84,6 +85,9 @@ if(getTurn() == 1){
 			_ITEM_HAVECD[i] = getChipCooldown(i) == 0? false:true;
 		}
 	}
+	_ITEM_MINRANGE[WEAPON_GAZOR] = 4;
+	_ITEM_MINRANGE[CHIP_TOXIN] = 2;
+	_ITEM_MINRANGE[CHIP_PLAGUE] = 4;
 	for (var i = 0; i <= _MAX_CELLS; i++) {
 		if(isObstacle(i)) _OBSTACLES[i] = true;//test cellules libres avec _OBSTACLES[i] == null
 		_CIRCLE_AREA1[i] = circleEffectiveArea1(i);
@@ -94,16 +98,28 @@ if(getTurn() == 1){
 function updateGameState(){
 	allies = [];
 	enemies = [];
+	_STR400 = false;
+	_STR300 = false;
+	_MGC400 = false;
+	_MGC300 = false;
+	if(_ENCODING_STUFF[CHIP_TELEPORTATION] != null) _IS_TELEPORT = true;
 	for (var l in getAliveAllies()+getAliveEnemies()) {
+		_VIRTUAL_STATE[l] = [];
 		_LIFE[l] = getLife(l);
 		_ABS_SHIELD[l] = getAbsoluteShield(l);
-		_REL_SHIELD = getRelativeShield(l);
+		_REL_SHIELD[l] = getRelativeShield(l);
 		_PSN_LIFE[l] = getLife(l);
 		_HEAL[l] = 0;
 		var effects = getEffects(l);
 		for (var i = 0; i < count(effects); i++) {
 			if(effects[i][0] == EFFECT_POISON) _PSN_LIFE[l] -= effects[i][1];
 			if(effects[i][0] == EFFECT_HEAL) _HEAL[l] += effects[i][1];
+		}
+		if(isEnemy(l)){
+			if(getStrength(l) >= 400) _STR400 = true;
+			if(getStrength(l) >= 300) _STR300 = true;
+			if(getMagic(l) >= 400) _MGC400 = true;
+			if(getMagic(l) >= 300) _MGC300 = true;
 		}
 		_MP[l] = getMP(l);
 		_TP[l] = getTP(l);
@@ -119,6 +135,16 @@ function updateGameState(){
 			if(eType == ENTITY_METALLIC_BULB) _METALLIC_COUNT += 1;
 			if(eType == ENTITY_LIGHTNING_BULB) _LIGHTNING_COUNT += 1;
 		}
+		_VIRTUAL_STATE[l]["_rel"] = _REL_SHIELD[l];
+		_VIRTUAL_STATE[l]["_abs"] = _ABS_SHIELD[l];
+		_VIRTUAL_STATE[l]["_psn_life"] = _PSN_LIFE[l];
+		_VIRTUAL_STATE[l]["_life"] = _LIFE[l];
+		_VIRTUAL_STATE[l]["_heal"] = _HEAL[l];
+		_VIRTUAL_STATE[l]["_mp"] = _MP[l];
+		_VIRTUAL_STATE[l]["_tp"] = _TP[l];
+		_VIRTUAL_STATE[l]["_str"] = _STR[l];
+		_VIRTUAL_STATE[l]["_mgc"] = _MGC[l];
+		_VIRTUAL_STATE[l]["death"] = false;
 		if(isAlly(l)) push(allies, l);
 		else push(enemies, l);
  	}
