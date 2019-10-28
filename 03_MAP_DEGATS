@@ -107,7 +107,8 @@ function getSafestCell(@map){//map must be in form  [cell:dmg]
 			push(_CELLS, cell);
 	}
 	_DANGER = _SAFE;
-	return _CELLS[search(distance, arrayMin(distance))];
+	if(_SAFE == 0) return _CELLS[search(distance, arrayMin(distance))];
+	else return _CELLS[search(distance, arrayMax(distance))];
 }
 /*_MAP_DANGER = getStrength(getNearestELeek()) > 200? sortMapForCells(setDangerMap(WEAPON_GRENADE_LAUNCHER,  getNearestELeek(),  _SELF),  _SELF): sortMapForCells(setDangerMap(WEAPON_FLAME_THROWER,  getNearestELeek(),  _SELF),  _SELF);
 */
@@ -123,6 +124,7 @@ function addItemToMap(item, entity, target){
 	var dmg, effect = _ITEM_EFFECTS[item], effectiveArea;
 	var cost = _ITEMCOST[item];
 	var coef = 0, tp = getTP(entity);
+	if(_ISWEAP[item] && getWeapon(entity) != item) tp -=1;
 	while (tp >= cost) {
 		coef = coef + 1;
 		tp = tp - cost;
@@ -179,10 +181,11 @@ function setAdvancedDangerMap(entity, target){
 	}
 	removeElement(testItems, CHIP_LIBERATION);
 	for (var i in testItems) {
-		debug(getWeaponName(i) + getChipName(i));
-	}
-	for (var i in testItems) {
 		addItemToMap(i,  entity,  target);
+		if(getOperations() >= 10000000) break;
+	}
+	for (var i = 0; i < _MAX_CELLS; i++) {
+		if(_DANGER_MAP[i] == null) _DANGER_MAP[i] = 0;
 	}
 	return @_DANGER_MAP;
 }
@@ -190,4 +193,9 @@ _MAP_DANGER = setAdvancedDangerMap(getNearestELeek(), _SELF);
 
 function getCellDammage(cell){
 	return _MAP_DANGER[cell];
+}
+function getCellScore(cell, from){
+	var remainingMp = getMP() - _REACHABLE_CELLS[cell];
+	var score = 0;
+	score = -(getCellDammage(cell));
 }
