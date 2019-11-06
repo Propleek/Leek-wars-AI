@@ -378,16 +378,21 @@ function findActionScore(@action, @state){//action must be in form [item, cell] 
 	if(item == CHIP_LIBERATION){
 		for (var l in targets) {
 			for (var e in getEffects(l)) {
-				if(e[0] == EFFECT_ABSOLUTE_SHIELD) score += 60/100*e[1]*_ATTACK_COEF[l];
-				if(e[0] == EFFECT_RELATIVE_SHIELD) score += 60/100*e[1]*_ATTACK_COEF[l];
-				if(e[0] == EFFECT_POISON) score -= 60/100*e[1]*_ATTACK_COEF[l];
-				if(e[0] == EFFECT_BUFF_AGILITY) score += 60/100*e[1]*_ATTACK_COEF[l];
-				if(e[0] == EFFECT_BUFF_FORCE) score += 60/100*e[1]*_ATTACK_COEF[l];
-				if(e[0] == EFFECT_BUFF_MP) score += 60/100*e[1]*_ATTACK_COEF[l];
-				if(e[0] == EFFECT_BUFF_RESISTANCE) score += 60/100*e[1]*_ATTACK_COEF[l];
-				if(e[0] == EFFECT_BUFF_TP) score += 60/100*e[1]*_ATTACK_COEF[l];
-				if(e[0] == EFFECT_BUFF_WISDOM) score += 60/100*e[1]*_ATTACK_COEF[l];
-				if(e[0] == EFFECT_HEAL) score += 60/100*e[1]*_ATTACK_COEF[l];
+				if(isEnemy(l)){
+					if(e[0] == EFFECT_ABSOLUTE_SHIELD) score += 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_RELATIVE_SHIELD) score += 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_POISON) score -= 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_BUFF_AGILITY) score += 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_BUFF_FORCE) score += 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_BUFF_MP) score += 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_BUFF_RESISTANCE) score += 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_BUFF_TP) score += 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_BUFF_WISDOM) score += 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_HEAL) score += 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_POISON) score -= 60/100*e[1]*_ATTACK_COEF[l];
+					if(e[0] == EFFECT_SHACKLE_STRENGTH) score -= 60/100*e[1]*_STR_DEBUF_COEF[l];
+					if(e[0] == EFFECT_SHACKLE_MAGIC) score -= 60/100*e[1]*_MAGIC_DEBUF_COEF[l];
+				}
 			}
 		}
 		return score;
