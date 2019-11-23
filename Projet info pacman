@@ -1,0 +1,45 @@
+# -*- coding: utf-8 -*-
+class events:
+        UP = 'UP'
+        DOWN = 'DOWN'
+        LEFT = 'LEFT'
+        RIGHT = 'RIGHT'
+tableau = [
+        ['p', 'm', 'm','m','1'],
+        ['1','1','1','1','1'],
+        ['m','m','1','m','1'],
+        ['1','1','1','1','1'],
+        ['m','1','m','1','m'],
+]
+def myIndex(tab, element):
+    """
+    renvoie l'index de la première valeur trouvée corespondant à l'élément element dans la liste tab
+    """
+    for i in range(0, len(tab)):
+        if tab[i] == element:
+            return i
+    return None
+def canMove(direction):
+    pos = 0
+    for i in range(0, len(tableau)):
+        if myIndex(tableau, 'p') != None:
+            pos = [i, myIndex(tableau, 'p')]
+    if direction == events.UP:
+        if pos[0] == 0:
+            return False
+        return pos[0]-1 != 'm'
+    if direction == events.DOWN:
+        if pos[0]+1 == len(tableau):
+            return False
+        return pos[0]+1 != 'm'
+    if direction == events.LEFT:
+        if pos[1] == 0:
+            return False
+        return pos[1]-1 != 'm'
+    if direction == events.RIGHT:
+        if pos[1]+1 == len(tableau[0]):
+            return False
+        return pos[1]+1 != 'm'
+    return False
+
+print(canMove('DOWN'))      
