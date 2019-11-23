@@ -514,3 +514,4 @@ function updateVirtualState(@action){//function unfinished, the point is to vitu
 		}
 	}
 }
+//petit ajout
