@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
+import pygame
 class events:
         UP = 'UP'
         DOWN = 'DOWN'
@@ -9,51 +10,46 @@ def canMove(direction):
     pos = []
     for i in range(0, len(tableau)):
         if myIndex(tableau[i], 'p') != None:
-            pos = [i, myIndex(tableau[i], 'p')]
+            pos = [i, myIndex(tableau[i], 'p')]##obtention du rang du perso
+    print(pos)
     if direction == events.UP:
         if pos[0] == 0:
             return False
-        if tableau[pos[0]-1][pos[1]] != 'm':
-            return pos[0]-1 != 'm'
-        return False
+        return [pos[0]-1][pos[1]] != 'm'
     if direction == events.DOWN:
-        if pos[0]+1 == len(tableau):
+        if pos[0] == len(tableau)-1:
             return False
-        if tableau[pos[0]+1][pos[1]] != 'm':
-            return pos[0]+1 != 'm'
-        return False
+        return [pos[0]+1][pos[1]] != 'm'
     if direction == events.LEFT:
         if pos[1] == 0:
             return False
-        if tableau[pos[0]][pos[1]-1] != 'm':
-            return pos[1]-1 != 'm'
-        return False
+        return[pos[0]][pos[1]-1] != 'm'
     if direction == events.RIGHT:
-        if pos[1]+1 == len(tableau[0]):
+        if pos[1] == len(tableau[0])-1:
             return False
-        if tableau[pos[0]][pos[1]+1] != 'm':
-            return pos[1]+1 != 'm'
-        return False
+        return [pos[0]][pos[1]+1] != 'm'
+    print("unExected direction")
     return False
 def Move(direction):
-  pos = []
-  for i in range(0, len(tableau)):
-    if myIndex(tableau[i], 'p') != None:
-      pos = [i, myIndex(tableau[i], 'p')]
-  if canMove(direction):
-    if direction == 'UP':
-      tableau[pos[0]][pos[1]] = '0'
-      tableau[pos[0]-1][pos[1]] = 'p'
-    if direction == 'DOWN':
-      tableau[pos[0]][pos[1]] = '0'
-      tableau[pos[0]+1][pos[1]] = 'p'
-    if direction == 'LEFT':
-      tableau[pos[0]][pos[1]] = '0'
-      tableau[pos[0]][pos[1]-1] = 'p'
-    if direction == 'RIGHT':
-      tableau[pos[0]][pos[1]] = '0'
-      tableau[pos[0]][pos[1]+1] = 'p'
-  print(tableau)
+    print(canMove(direction))
+    pos = []
+    for i in range(0, len(tableau)):
+        if myIndex(tableau[i], 'p') != None:
+            pos = [i, myIndex(tableau[i], 'p')]
+    if canMove(direction):
+        if direction == 'UP':
+            tableau[pos[0]][pos[1]] = 'v'
+            tableau[pos[0]-1][pos[1]] = 'p'
+        if direction == 'DOWN':
+            tableau[pos[0]][pos[1]] = 'v'
+            tableau[pos[0]+1][pos[1]] = 'p'
+        if direction == 'LEFT':
+            tableau[pos[0]][pos[1]] = 'v'
+            tableau[pos[0]][pos[1]-1] = 'p'
+        if direction == 'RIGHT':
+            tableau[pos[0]][pos[1]] = 'v'
+            tableau[pos[0]][pos[1]+1] = 'p'
+    print(tableau)
 tableau = [
         ['p', 'm', 'm','m','1'],
         ['1','1','1','1','1'],
@@ -83,12 +79,24 @@ def myIndex(tab, element):
 total = 0
 direction = ''
 while total < 15:
-  pos = []
-  for i in range(0, len(tableau)):
-    if myIndex(tableau[i], 'p') != None:
-      pos = [i, myIndex(tableau[i], 'p')]
-  direction = input("quelle direction ?")
-  Move(direction)
-  if tableau[pos[0]][pos[1]] == '1':
-    total = total + 1
-  print(total)
+
+    pos = []
+    for i in range(0, len(tableau)):
+        if myIndex(tableau[i], 'p') != None:
+            pos = [i, myIndex(tableau[i], 'p')]
+    for event in pygame.event.get():
+       if event.type == QUIT:
+            total = 16
+       if event.type == KEYDOWN:
+            if event.key == K_DOWN:
+                move(events.DOWN)
+            if event.key == K_UP:
+                move(events.UP)
+            if event.key == K_LEFT:
+                move(events.LEFT)
+            if event.key == K_RIGHT:
+                move(events.RIGHT)
+    Move(direction)
+    if tableau[pos[0]][pos[1]] == '1':
+        total = total + 1
+    print(total)
